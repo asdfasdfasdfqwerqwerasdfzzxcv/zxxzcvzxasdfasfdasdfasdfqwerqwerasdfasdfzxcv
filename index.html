@@ -778,6 +778,11 @@
         const FINAL_FACE_URLS = ["cara1.jpg", "cara2.jpg"]; // Fotos locales para las caras cayendo
         // FOTO_TIENE_QUE_IR_AQUI: Fotos para cada nivel (modificar con las fotos reales)
         const LEVELUP_PHOTOS = ["4casa.jpg", "juntosVerano.jpg", "solosFotomaton.jpg", "juntosFlores.jpg"];
+        // PRECARGA DE IMÁGENES (Para evitar que se vea la foto anterior al subir de nivel)
+        LEVELUP_PHOTOS.forEach(function(rutaFoto) {
+            const img = new Image();
+            img.src = rutaFoto;
+        });
         const INTRO_SHOWN_KEY = 'pepeLorenaIntroShown';
         let easterEggClickCount = 0;
         let profileClickCount = 0;
