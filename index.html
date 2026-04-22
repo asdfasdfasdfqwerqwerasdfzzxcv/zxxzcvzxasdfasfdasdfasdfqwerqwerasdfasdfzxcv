@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bodas de Plata - Pepe & Lorena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b1021;
+            --bg-gradient: radial-gradient(circle at top right, #1a2542, #070a14);
+            --plata-clara: #ffffff;
+            --plata-media: #c0c0c0;
+            --plata-oscura: #8a8a8a;
+            --texto-principal: #f0f2f5;
+            --texto-secundario: #a8b2d1;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(192, 192, 192, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--texto-principal);
+            margin: 0; padding: 0; padding-bottom: 80px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        header {
+            position: sticky; top: 0;
+            background: rgba(11, 16, 33, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 20px; z-index: 100;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .names { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin: 0; }
+        .silver-text {
+            background: linear-gradient(to right, #8a8a8a, #ffffff, #8a8a8a);
+            background-size: 200% auto;
+            color: transparent; -webkit-background-clip: text; background-clip: text;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer { to { background-position: 200% center; } }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--plata-media);
+        }
+        .easter-egg {
+            background: none;
+            border: none;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin: 0;
+            color: inherit;
+            cursor: pointer;
+            transition: text-shadow 0.3s ease;
+        }
+        .easter-egg.glow {
+            animation: glow 0.5s ease;
+        }
+        .profile-img.glow {
+            box-shadow: 0 0 20px rgba(255, 207, 112, 0.8), 0 0 40px rgba(255, 207, 112, 0.4);
+            animation: glow 0.5s ease;
+        }
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #ffcf70, 0 0 20px #ffcf70; }
+            50% { text-shadow: 0 0 20px #ff6ec7, 0 0 40px #ff6ec7; }
+            100% { text-shadow: 0 0 10px #70e1ff, 0 0 20px #70e1ff; }
+        }
+
+        .progress-bar-container {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; margin-top: 15px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #ffcf70, #70e1ff, #ff6ec7, #ffcf70);
+            background-size: 200% auto; animation: shimmer 2s linear infinite;
+            transition: width 0.8s ease;
+        }
+
+        .missions-container { padding: 20px; max-width: 600px; margin: 0 auto; position: relative; z-index: 2; }
+        .mission-card {
+            background: var(--glass-bg); border-radius: 16px; padding: 22px;
+            margin-bottom: 20px; border: 1px solid var(--glass-border);
+            position: relative; transition: all 0.4s ease;
+        }
+
+        .mission-card.locked { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
+        .mission-card.active { border: 1px solid white; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .mission-card.completed { 
+            border: 1px solid transparent; 
+            border-image: linear-gradient(135deg, #ffcf70, #ff6ec7, #70e1ff) 1; 
+            opacity: 0.8; 
+            box-shadow: 0 0 15px rgba(255, 207, 112, 0.3), 0 0 30px rgba(255, 110, 199, 0.2); 
+        }
+
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .btn-row { display: flex; gap: 10px; }
+        .btn {
+            padding: 14px; border-radius: 12px; border: none; font-weight: 600;
+            text-align: center; text-decoration: none; cursor: pointer; flex: 1;
+        }
+        .btn-maps { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border); }
+        .btn-photo { background: #4A90E2; color: white; }
+        .btn-complete { background: white; color: #0b1021; }
+
+        .reset-container { text-align: center; margin-top: 40px; padding: 20px; position: relative; z-index: 2; }
+        .btn-reset { background: transparent; color: var(--plata-oscura); border: 1px solid var(--plata-oscura); font-size: 0.7rem; padding: 8px 15px; border-radius: 20px; }
+        
+        .day-divider { text-align: center; margin: 30px 0; font-family: 'Playfair Display', serif; color: var(--plata-media); letter-spacing: 2px; }
+
+        #easter-egg-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 400;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #easter-egg-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .easter-egg-content {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--glass-border);
+        }
+
+        body.intro-open { overflow: hidden; }
+        .intro-curtain {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 190, 92, 0.32), transparent 25%),
+                        radial-gradient(circle at 80% 15%, rgba(157, 83, 255, 0.30), transparent 22%),
+                        radial-gradient(circle at 70% 80%, rgba(76, 195, 255, 0.20), transparent 20%),
+                        linear-gradient(135deg, #2b2c55 0%, #1e1833 45%, #4b2965 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+        .intro-curtain.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .curtain-card {
+            width: min(520px, calc(100% - 40px));
+            border-radius: 32px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(11, 12, 34, 0.95);
+            padding: 32px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .curtain-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 28%),
+                        radial-gradient(circle at bottom right, rgba(255,118,217,0.16), transparent 30%);
+            pointer-events: none;
+        }
+        .curtain-content {
+            position: relative;
+            z-index: 1;
+        }
+        .curtain-photo {
+            width: 132px;
+            height: 132px;
+            margin: 0 auto 22px;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.16);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+        }
+        .curtain-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .curtain-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: #ffffff;
+            margin: 0 0 14px;
+            letter-spacing: 0.03em;
+        }
+        .curtain-subtitle {
+            margin: 0 auto 26px;
+            max-width: 88%;
+            color: #dcdcff;
+            font-size: 1.05rem;
+            line-height: 1.65;
+        }
+        .btn-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 30px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            background: linear-gradient(135deg, #ff8a3d, #c166ff);
+            box-shadow: 0 16px 40px rgba(193, 98, 255, 0.25);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            animation: floatButton 3s ease-in-out infinite;
+        }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 45px rgba(193, 98, 255, 0.35);
+        }
+        @keyframes floatButton {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes pulseGlow {
+            0%,100% { box-shadow: 0 0 0 0 rgba(255, 138, 61, 0.18); }
+            50% { box-shadow: 0 0 0 20px rgba(255, 138, 61, 0); }
+        }
+        .curtain-card { animation: curtainAppear 0.7s ease forwards; }
+        @keyframes curtainAppear { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 16, 33, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 200;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .levelup-modal {
+            background: rgba(18, 25, 44, 0.96);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #ffcf70, #ff6ec7, #70e1ff) 1;
+            border-radius: 24px;
+            padding: 28px 28px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 22px 70px rgba(255, 110, 199, 0.18), 0 14px 30px rgba(33, 42, 66, 0.35);
+            overflow: hidden;
+            position: relative;
+        }
+        .levelup-modal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 24%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 109, 176, 0.14), transparent 22%),
+                        radial-gradient(circle at 10% 90%, rgba(134, 239, 255, 0.08), transparent 20%);
+            pointer-events: none;
+        }
+        .levelup-content {
+            position: relative;
+            z-index: 1;
+        }
+        .levelup-photo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 18px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 207, 112, 0.5);
+            box-shadow: 0 12px 30px rgba(255, 110, 199, 0.2);
+        }
+        .levelup-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        #final-modal .levelup-modal {
+            border-image: linear-gradient(135deg, #ffcf70, #ff6ec7, #70e1ff) 1;
+            box-shadow: 0 22px 70px rgba(255, 110, 199, 0.18), 0 14px 30px rgba(33, 42, 66, 0.35);
+            overflow: hidden;
+            position: relative;
+            padding: 32px 28px;
+        }
+        #final-modal .levelup-modal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 24%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 109, 176, 0.14), transparent 22%),
+                        radial-gradient(circle at 10% 90%, rgba(134, 239, 255, 0.08), transparent 20%);
+            pointer-events: none;
+        }
+        .final-drop-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .face-drop {
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.35);
+            background: white;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+            opacity: 0;
+            animation: fallFace 6s linear infinite;
+        }
+        .face-drop img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        @keyframes fallFace {
+            0% { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(260px) rotate(360deg); opacity: 0; }
+        }
+        .close-x {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: background 0.2s ease, transform 0.2s ease;
+            z-index: 10;
+        }
+        .close-x:hover {
+            background: rgba(255,255,255,0.14);
+            transform: scale(1.05);
+        }
+        .final-message {
+            margin: 18px 0 0;
+            color: #f2e8ff;
+            font-size: 0.98rem;
+            line-height: 1.7;
+            opacity: 0.95;
+        }
+        .final-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 14px auto 0;
+            background: rgba(255, 138, 61, 0.12);
+            color: #fff3e8;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+            animation: pulseGlow 2.2s ease-in-out infinite;
+        }
+        .levelup-modal h3 {
+            margin: 0 0 12px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            color: #f7f9ff;
+        }
+        .levelup-modal p {
+            margin: 0;
+            color: var(--plata-media);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .levelup-modal strong {
+            display: block;
+            margin-top: 18px;
+            font-size: 1rem;
+            color: var(--plata-clara);
+        }
+        .modal-close {
+            margin-top: 24px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--plata-clara);
+            border-radius: 999px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* CSS para la animación de Bodas de Plata */
+        .wedding-anniversary-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(11, 16, 33, 0.95) 0%, rgba(11, 16, 33, 1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease, visibility 1s ease;
+            cursor: pointer;
+        }
+        .wedding-anniversary-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .wedding-anniversary-content {
+            text-align: center;
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .wedding-photo-container {
+            margin-bottom: 30px;
+            animation: photoZoomIn 2s ease-out;
+        }
+        .wedding-photo {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: photoGlow 3s ease-in-out infinite alternate;
+        }
+        @keyframes photoZoomIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes photoGlow {
+            0% { box-shadow: 0 20px 60px rgba(255, 207, 112, 0.3); }
+            100% { box-shadow: 0 20px 60px rgba(255, 110, 199, 0.5); }
+        }
+        .wedding-text-container {
+            animation: textFadeIn 3s ease-out 1s both;
+        }
+        .wedding-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            color: #ffffff;
+            margin: 0 0 10px;
+            text-shadow: 0 0 30px rgba(255, 207, 112, 0.8), 0 0 60px rgba(255, 207, 112, 0.4);
+            background: linear-gradient(45deg, #ffcf70, #ffffff, #ff6ec7, #70e1ff);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleShimmer 4s ease-in-out infinite, titlePulse 2s ease-in-out infinite;
+        }
+        @keyframes textFadeIn {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .wedding-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: #dcdcff;
+            font-weight: 300;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: subtitleFloat 3s ease-in-out infinite;
+        }
+        @keyframes subtitleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .wedding-sparkles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .wedding-sparkles::before,
+        .wedding-sparkles::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #ffcf70, transparent);
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        .wedding-sparkles::before {
+            top: 20%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+        .wedding-sparkles::after {
+            top: 70%;
+            right: 20%;
+            animation-delay: 1s;
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Media Queries para Móvil */
+        @media (max-width: 768px) {
+            .intro-curtain, .modal-overlay {
+                padding: 20px;
+            }
+            
+            .curtain-card {
+                padding: 24px 20px;
+                width: min(90vw, calc(100% - 20px));
+            }
+            
+            .curtain-photo {
+                width: clamp(100px, 25vw, 120px);
+                height: clamp(100px, 25vw, 120px);
+                margin: 0 auto 16px;
+                border-radius: 20px;
+            }
+            
+            .curtain-title {
+                font-size: clamp(1.5rem, 4vw, 2.2rem);
+                margin: 0 0 10px;
+            }
+            
+            .curtain-subtitle {
+                font-size: clamp(0.95rem, 2.5vw, 1rem);
+                margin: 0 auto 18px;
+            }
+            
+            .btn-start {
+                padding: 12px 24px;
+                font-size: 0.95rem;
+            }
+            
+            .curtain-card { animation: curtainAppear 0.6s ease forwards; }
+            
+            .wedding-anniversary-content {
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .wedding-photo-container {
+                margin-bottom: 15px;
+            }
+            
+            .wedding-photo {
+                /* Antes: clamp(200px, 80vw, 350px) */
+                /* Ahora: Más grande en el mínimo, el ideal y el máximo */
+                width: clamp(250px, 90vw, 400px);
+                height: clamp(250px, 90vw, 400px);
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
+            }
+            
+            .wedding-title {
+                /* Antes: clamp(4.5rem, 12vw, 5.5rem) */
+                /* Ahora: Reducido para que no ocupe tantísimo espacio */
+                font-size: clamp(2.2rem, 6vw, 2.8rem);
+                margin: 0 0 8px;
+                text-shadow: 0 0 15px rgba(255, 207, 112, 0.6), 0 0 30px rgba(255, 207, 112, 0.3);
+            }
+            
+            .wedding-subtitle {
+                /* Antes: clamp(2rem, 5vw, 2.5rem) */
+                /* Ahora: Un poco más sutil para acompañar al título */
+                font-size: clamp(1.4rem, 4vw, 1.8rem);
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            }
+            
+            .wedding-subtitle {
+                font-size: clamp(2rem, 5vw, 2.5rem);
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            }
+            
+            .wedding-sparkles::before {
+                top: 10%;
+                left: 10%;
+                width: 6px;
+                height: 6px;
+            }
+            
+            .wedding-sparkles::after {
+                top: 80%;
+                right: 10%;
+                width: 6px;
+                height: 6px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .curtain-card {
+                padding: 20px 16px;
+            }
+            
+            .curtain-photo {
+                width: clamp(80px, 20vw, 100px);
+                height: clamp(80px, 20vw, 100px);
+                margin: 0 auto 12px;
+            }
+            
+            .curtain-title {
+                font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+                margin: 0 0 8px;
+            }
+            
+            .curtain-subtitle {
+                font-size: clamp(0.85rem, 2vw, 0.95rem);
+                margin: 0 auto 14px;
+                line-height: 1.5;
+            }
+            
+            .btn-start {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .wedding-anniversary-content {
+                padding: 15px;
+            }
+            
+            .wedding-photo {
+                width: clamp(120px, 60vw, 200px);
+                height: clamp(120px, 60vw, 200px);
+                border-radius: 10px;
+            }
+            
+            .wedding-title {
+                font-size: clamp(3.5rem, 9vw, 4.5rem);
+                margin: 0 0 5px;
+            }
+            
+            .wedding-subtitle {
+                font-size: clamp(2rem, 5vw, 2.5rem);
+            }
+            
+            .wedding-text-container {
+                animation: textFadeIn 2.5s ease-out 0.8s both;
+            }
+            
+            .wedding-sparkles::before,
+            .wedding-sparkles::after {
+                width: 5px;
+                height: 5px;
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-curtain" class="intro-curtain hidden">
+        <div class="curtain-card">
+            <div class="curtain-content">
+                <div class="curtain-photo">
+                    <img src="Casados0.jpg" alt="Foto de ellos">
+                </div>
+                <h2 class="curtain-title">25 Años de Magia</h2>
+                <p class="curtain-subtitle">Bienvenidos al viaje especial por las bodas de plata de Pepe y Lorena. Una experiencia que comienza hoy.</p>
+                <button class="btn-start" onclick="startAventura()">Comenzar Aventura</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="profile-section">
+            <img src="Casados0.jpg" alt="Perfil" class="profile-img">
+            <button class="names silver-text easter-egg" id="easter-egg-btn">Pepe & Lorena</button>
+        </div>
+        <div id="rank-display" style="font-size: 0.8rem; margin-top:5px; color: #aaa;">Cargando nivel...</div>
+        <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+    </header>
+
+    <main class="missions-container" id="main-content">
+        </main>
+
+    <div class="reset-container">
+        <button class="btn-reset" onclick="resetProgress()">Reiniciar Viaje</button>
+    </div>
+
+    <div id="levelup-modal" class="modal-overlay" onclick="closeLevelUpPopup()">
+        <div class="levelup-modal" onclick="event.stopPropagation()">
+            <div class="levelup-content">
+                <div class="levelup-photo">
+                    <img id="levelup-photo-img" src="perfil.jpg" alt="Foto del nivel">
+                    <!-- FOTO_TIENE_QUE_IR_AQUI: Cambiar la imagen según el nivel en showLevelUpPopup() -->
+                </div>
+                <h3>¡Nuevo nivel!</h3>
+                <p id="levelup-text">Novios de parque → Comparten cuenta de Netflix</p>
+            </div>
+            <button class="modal-close" onclick="closeLevelUpPopup()">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="final-modal" class="modal-overlay">
+        <div class="levelup-modal" onclick="event.stopPropagation()">
+            <div class="final-drop-container" id="final-drop-container"></div>
+            <button class="close-x" onclick="closeFinalPopup()">×</button>
+            <h3>¡Feliz 25 Aniversario!</h3>
+            <p id="final-text">Esperamos que hayáis disfrutado muchísimo de este viaje y de cada momento en Madrid.</p>
+            <div class="final-badge">25 años de camino compartido</div>
+            <p class="final-message">Pepe y Lorena, es un orgullo ver todo lo que habéis construido juntos en este cuarto de siglo. Disfrutad mucho de lo que queda de fin de semana. Toda la familia os manda un abrazo inmenso, ¡os queremos!</p></p>
+            <button class="modal-close" onclick="closeFinalPopup()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Nueva animación de Bodas de Plata -->
+    <div id="wedding-anniversary-modal" class="wedding-anniversary-overlay">
+        <div class="wedding-anniversary-content">
+            <div class="wedding-photo-container">
+                <img src="VivanLosNovios.jpg" alt="Foto de bodas de Pepe y Lorena" class="wedding-photo">
+            </div>
+            <div class="wedding-text-container">
+                <h1 class="wedding-title">Bodas de Plata</h1>
+                <div class="wedding-subtitle">25 años de amor y magia</div>
+            </div>
+            <div class="wedding-sparkles"></div>
+        </div>
+    </div>
+
+    <div id="easter-egg-modal" class="modal-overlay" onclick="closeEasterEgg()">
+        <div class="easter-egg-content" onclick="event.stopPropagation()">
+            <button type="button" class="close-x" onclick="closeEasterEgg()">×</button>
+            <img src="random.jpeg" alt="Easter Egg" style="max-width: 100%; max-height: 80vh; border-radius: 10px;">
+            <audio id="love-audio" src="love.mp3"></audio>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_PHOTOS_URL = "https://photos.app.goo.gl/7fFarWcV87oYz4o16"; // CAMBITU_ENLACEA ESTO
+        const INTRO_PHOTO_URL = "casados0.jpg"; // Foto local dentro de la carpeta actual
+        const FINAL_FACE_URLS = ["cara1.jpg", "cara2.jpg"]; // Fotos locales para las caras cayendo
+        // FOTO_TIENE_QUE_IR_AQUI: Fotos para cada nivel (modificar con las fotos reales)
+        const LEVELUP_PHOTOS = ["4casa.jpg", "juntosVerano.jpg", "solosFotomaton.jpg", "juntosFlores.jpg"];
+        const INTRO_SHOWN_KEY = 'pepeLorenaIntroShown';
+        let easterEggClickCount = 0;
+        let profileClickCount = 0;
+        
+const missionsData = [
+            { day: "Viernes 26", title: "Misión 1: Magia Potagia", desc: "Espectáculo 'Si no lo veo, no lo creo'. Prestad atención, a ver si aprendéis el truco para hacer desaparecer la ropa sucia en casa.", time: "21:30h", maps: "https://maps.app.goo.gl/9jD6dLRvQh7NGvBn6" },
+            { day: "Viernes 26", title: "Misión 2: Homenaje Gastronómico", desc: "Cena de lujo en ROOSTIQ. Hoy las calorías no cuentan y hablar de trabajo está penado con fregar los platos un mes.", time: "Cena", maps: "https://maps.app.goo.gl/Ea3EfFEjLLH5NLN17" },
+            { day: "Sábado 27", title: "Misión 3: Remo y Asfalto", desc: "A remar en El Retiro (el que no rema, paga la caña) y de pateo por Gran Vía esquivando multitudes madrileñas.", time: "Mañana", maps: "https://maps.app.goo.gl/owoKbwUuNyacWrvb7" },
+            { day: "Sábado 27", title: "Misión 4: Repostaje de Altura", desc: "Comida en LA PRIMERA. Después de la paliza de caminar, os habéis ganado que os sirvan a mesa puesta como a reyes. Disfrutad de las vistas.", time: "Comida", maps: "https://maps.app.goo.gl/hZXi47EkfLst4Rq8A" },
+            { day: "Sábado 27", title: "Misión 5: Postureo Nivel Experto", desc: "Cafecito en Secret Rooftop Garden. Momento de sacar la cámara y dar un poco de envidia al grupo de WhatsApp de la familia.", time: "Tarde", maps: "https://maps.app.goo.gl/Sa9Zu6gtmASMVMw1A" },
+            { day: "Sábado 27", title: "Misión 6: Fiebre del Sábado Noche", desc: "Iberdrola Music. Toca mover el esqueleto y quemar lo comido. Cuidado con las lumbares, que nos conocemos.", time: "Noche", maps: "https://maps.app.goo.gl/wepzjrUtoKCB6mnz8" },
+            { day: "Domingo 28", title: "Misión 7: La Religión del Vermut", desc: "Ruta por el Mercado de San Miguel y la Plaza Mayor. Bocata de calamares obligatorio, ¡aquí el aperitivo es sagrado!", time: "Mañana", maps: "https://maps.app.goo.gl/XVxMBHKRQL45YgZM8" },
+            { day: "Domingo 28", title: "Misión 8: Desafío Final (El Cocido)", desc: "Gran comilona en Casa Carola. El broche de oro. Si superáis este festín sin necesitar una siesta de tres horas, sois inmortales.", time: "Comida", maps: "https://maps.app.goo.gl/gviVUYxD79qzRngC9" }
+        ];
+
+        const ranks = [
+            { min: 0, title: "Nivel 1: Novios de parque" },
+            { min: 2, title: "Nivel 2: Comparten cuenta de Netflix" },
+            { min: 4, title: "Nivel 3: Sobrevivieron a las reformas" },
+            { min: 7, title: "Nivel Dios: 25 años de aguante" }
+        ];
+
+        let currentProgress = parseInt(localStorage.getItem('pepeLorenaProgress')) || 0;
+        let currentRankIndex = getRankIndex(currentProgress);
+
+        function initIntroCurtain() {
+            const intro = document.getElementById('intro-curtain');
+            const alreadyShown = localStorage.getItem(INTRO_SHOWN_KEY);
+            const img = intro.querySelector('img');
+            img.src = INTRO_PHOTO_URL;
+
+            if (!alreadyShown) {
+                document.body.classList.add('intro-open');
+                intro.classList.remove('hidden');
+            } else {
+                intro.classList.add('hidden');
+            }
+        }
+
+        function startAventura() {
+            localStorage.setItem(INTRO_SHOWN_KEY, '1');
+            closeIntroCurtain();
+        }
+
+        function closeIntroCurtain() {
+            const intro = document.getElementById('intro-curtain');
+            intro.classList.add('hidden');
+            document.body.classList.remove('intro-open');
+        }
+
+        function getRankIndex(progress) {
+            for (let i = ranks.length - 1; i >= 0; i--) {
+                if (progress >= ranks[i].min) return i;
+            }
+            return 0;
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+            let lastDay = "";
+
+            missionsData.forEach((m, i) => {
+                if (m.day !== lastDay) {
+                    container.innerHTML += `<div class="day-divider">${m.day}</div>`;
+                    lastDay = m.day;
+                }
+
+                let statusClass = "locked";
+                if (i === currentProgress) statusClass = "active";
+                if (i < currentProgress) statusClass = "completed";
+
+                container.innerHTML += `
+                    <div class="mission-card ${statusClass}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.8rem;">
+                            <span style="background:white; color:black; padding:2px 8px; border-radius:10px; font-weight:bold;">${m.time}</span>
+                            <span>${statusClass === 'completed' ? '✓' : '+100 pts'}</span>
+                        </div>
+                        <h2 class="mission-title">${m.title}</h2>
+                        <p class="mission-desc">${m.desc}</p>
+                        <div class="btn-group">
+                            <div class="btn-row">
+                                <a href="${m.maps}" target="_blank" class="btn btn-maps">📍 Ruta</a>
+                                <a href="${GOOGLE_PHOTOS_URL}" target="_blank" class="btn btn-photo">📸 Foto</a>
+                            </div>
+                            ${i === currentProgress ? `<button onclick="nextMission(${i})" class="btn btn-complete">¡Misión Cumplida!</button>` : ''}
+                        </div>
+                    </div>`;
+            });
+            updateStats();
+        }
+
+        function nextMission(i) {
+            const previousRankIndex = currentRankIndex;
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            currentProgress++;
+            localStorage.setItem('pepeLorenaProgress', currentProgress);
+            renderMissions();
+
+            const newRankIndex = getRankIndex(currentProgress);
+            if (newRankIndex > previousRankIndex) {
+                showLevelUpPopup(previousRankIndex, newRankIndex);
+            }
+            if (currentProgress === missionsData.length) {
+                showWeddingAnniversaryAnimation();
+            }
+        }
+
+        function updateStats() {
+            const perc = (currentProgress / missionsData.length) * 100;
+            document.getElementById('progress-bar').style.width = perc + "%";
+            const newRankIndex = getRankIndex(currentProgress);
+            currentRankIndex = newRankIndex;
+            document.getElementById('rank-display').innerText = ranks[newRankIndex].title;
+        }
+
+        function showLevelUpPopup(fromIndex, toIndex) {
+            const text = `${ranks[fromIndex].title.split(': ')[1]} → ${ranks[toIndex].title.split(': ')[1]}`;
+            document.getElementById('levelup-text').innerText = text;
+            document.getElementById('levelup-photo-img').src = LEVELUP_PHOTOS[toIndex];
+            const modal = document.getElementById('levelup-modal');
+            modal.classList.add('active');
+            clearTimeout(window.levelupTimeout);
+            window.levelupTimeout = setTimeout(closeLevelUpPopup, 3500);
+        }
+
+        function showFinalPopup() {
+            const texts = [
+                'Un viaje compartido, recuerdos eternos y todo el cariño de la familia.',
+                'Cada paso ha sido una celebración y aquí está el final más feliz.'
+            ];
+            document.getElementById('final-text').innerText = texts[Math.floor(Math.random() * texts.length)];
+            const modal = document.getElementById('final-modal');
+            modal.classList.add('active');
+            confetti({ particleCount: 190, spread: 100, origin: { y: 0.45 }, scalar: 1.2 });
+            createFinalFaceDrops();
+        }
+
+        function createFinalFaceDrops() {
+            const container = document.getElementById('final-drop-container');
+            container.innerHTML = '';
+            const count = 5;
+            const edgePositions = [
+                { min: 4, max: 18 },
+                { min: 82, max: 96 }
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'face-drop';
+                const edge = edgePositions[i % 2];
+                drop.style.left = `${edge.min + Math.random() * (edge.max - edge.min)}%`;
+                drop.style.width = `${42 + Math.random() * 14}px`;
+                drop.style.height = drop.style.width;
+                drop.style.animationDuration = `${4.5 + Math.random() * 1.5}s`;
+                drop.style.animationDelay = `${Math.random() * 1.4}s`;
+                const img = document.createElement('img');
+                img.src = FINAL_FACE_URLS[i % FINAL_FACE_URLS.length];
+                img.alt = 'Cara de ellos';
+                drop.appendChild(img);
+                container.appendChild(drop);
+            }
+        }
+
+        function closeFinalPopup() {
+            const modal = document.getElementById('final-modal');
+            modal.classList.remove('active');
+        }
+
+        function closeLevelUpPopup() {
+            const modal = document.getElementById('levelup-modal');
+            modal.classList.remove('active');
+        }
+
+        function handleEasterEggClick() {
+            easterEggClickCount++;
+            const btn = document.getElementById('easter-egg-btn');
+            btn.classList.add('glow');
+            setTimeout(() => btn.classList.remove('glow'), 500);
+            if (easterEggClickCount === 5) {
+                showEasterEgg();
+                easterEggClickCount = 0;
+            }
+        }
+
+
+        function showEasterEgg() {
+            const modal = document.getElementById('easter-egg-modal');
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            const audio = document.getElementById('love-audio');
+            audio.addEventListener('ended', closeEasterEgg, { once: true });
+            audio.play();
+        }
+
+        function closeProfileEasterEgg() {
+            const modal = document.getElementById('easter-egg-modal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            const audio = modal.querySelector('audio');
+            audio.pause();
+            audio.currentTime = 0;
+            // Reset to original
+            const img = modal.querySelector('img');
+            img.src = 'random.jpeg';
+            audio.src = 'love.mp3';
+        }
+
+        function closeEasterEgg() {
+            const modal = document.getElementById('easter-egg-modal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            const audio = document.getElementById('love-audio');
+            audio.pause();
+            audio.currentTime = 0;
+        }
+
+        function resetProgress() {
+            if(confirm("¿Seguro que quieres reiniciar el viaje?")) {
+                localStorage.removeItem('pepeLorenaProgress');
+                currentProgress = 0;
+                currentRankIndex = getRankIndex(currentProgress);
+                renderMissions();
+            }
+        }
+
+        function showWeddingAnniversaryAnimation() {
+            const modal = document.getElementById('wedding-anniversary-modal');
+            modal.classList.add('active');
+            // Después de 10 segundos o click, mostrar el popup final
+            const timeout = setTimeout(() => {
+                modal.classList.remove('active');
+                showFinalPopup();
+            }, 10000);
+            modal.addEventListener('click', () => {
+                clearTimeout(timeout);
+                modal.classList.remove('active');
+                showFinalPopup();
+            }, { once: true });
+        }
+
+        initIntroCurtain();
+        renderMissions();
+        document.getElementById('easter-egg-btn').addEventListener('click', handleEasterEggClick);
+        document.querySelector('.profile-img').addEventListener('click', handleProfileClick);
+    </script>
+</body>
+</html>
+
+
